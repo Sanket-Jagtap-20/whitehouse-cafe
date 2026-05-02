@@ -531,6 +531,12 @@ const MENU = [
   ]},
 ];
 
+// ── EMOJI MAP ─────────────────────────────────────────────────────────────
+const EMOJI_MAP = {
+  'coffee': '☕', 'burger': '🍔', 'milk shake': '🥤', 'mojito': '🍹',
+  'sandwich': '🥪', 'fries': '🍟', 'pizza': '🍕', 'maggi': '🍜'
+};
+
 // ── STATE ─────────────────────────────────────────────────────────────────
 const cart = {};
 let activeCat = 'all';
@@ -577,12 +583,6 @@ function tabBtn(label, val, active = false) {
 }
 
 // ── MENU RENDER ──────────────────────────────────────────────────────────
-// Emoji fallback per category
-const EMOJI_MAP = {
-  'coffee': '☕', 'burger': '🍔', 'milk shake': '🥤', 'mojito': '🍹',
-  'sandwich': '🥪', 'fries': '🍟', 'pizza': '🍕', 'maggi': '🍜'
-};
-
 function getCatEmoji(catName) {
   return EMOJI_MAP[catName.toLowerCase()] || '🍽️';
 }

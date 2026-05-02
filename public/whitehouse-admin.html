@@ -98,13 +98,22 @@
       margin-right: .5rem;
     }
     .nav-brand small { color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: .72rem; font-weight: 400; display: block; margin-top: -3px; }
-    .nav-tabs { display: flex; gap: .2rem; flex: 1; }
+    .nav-tabs {
+      display: flex;
+      gap: .2rem;
+      flex: 1;
+      min-width: 0;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+    }
     .nav-tab {
       background: none; border: none;
       color: var(--muted); font-family: 'DM Sans', sans-serif;
       font-size: .83rem; font-weight: 500;
       padding: .45rem .8rem; border-radius: var(--radius-sm);
       cursor: pointer; transition: all .15s; white-space: nowrap;
+      flex: 0 0 auto;
     }
     .nav-tab.active, .nav-tab:hover { background: var(--surface2); color: var(--amber); }
     .nav-tab.active { color: var(--amber-light); font-weight: 600; }
