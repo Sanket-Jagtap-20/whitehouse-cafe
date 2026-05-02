@@ -171,17 +171,39 @@
       background: #fff;
       border-radius: var(--radius-sm);
       border: 1.5px solid #f0e8df;
-      padding: .85rem;
+      padding: 0;
       display: flex;
       flex-direction: column;
-      gap: .3rem;
+      gap: 0;
       transition: box-shadow .2s, transform .15s;
-      height: 100%;
+      overflow: hidden;
     }
     .item-card:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
-    .item-name { font-size: .88rem; font-weight: 600; color: var(--brown); line-height: 1.3; word-break: break-word; }
-    .item-desc { font-size: .75rem; color: #9b7c63; line-height: 1.35; flex: 1; }
-    .item-footer { display: flex; align-items: center; justify-content: space-between; margin-top: .35rem; }
+    .item-img-wrap {
+      width: 100%;
+      height: 130px;
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+      overflow: hidden;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, #f5ece0, #e8d9c5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+    }
+    .item-img {
+      width: 100%;
+      height: 130px;
+      object-fit: cover;
+      display: block;
+      transition: opacity .3s;
+    }
+    .item-img.loading { opacity: 0; }
+    .item-img.loaded { opacity: 1; }
+    .item-body { padding: .6rem .75rem; display: flex; flex-direction: column; flex: 1; gap: .25rem; }
+    .item-name { font-size: .88rem; font-weight: 600; color: var(--brown); line-height: 1.3; word-break: break-word; padding: .6rem .75rem .1rem; }
+    .item-desc { font-size: .75rem; color: #9b7c63; line-height: 1.35; flex: 1; padding: 0 .75rem; }
+    .item-footer { display: flex; align-items: center; justify-content: space-between; margin-top: .35rem; padding: 0 .75rem .6rem; }
     .item-price { font-size: 1rem; font-weight: 700; color: var(--amber); }
     .veg-dot {
       display: inline-block;
@@ -555,6 +577,16 @@ function tabBtn(label, val, active = false) {
 }
 
 // ── MENU RENDER ──────────────────────────────────────────────────────────
+// Emoji fallback per category
+const EMOJI_MAP = {
+  'coffee': '☕', 'burger': '🍔', 'milk shake': '🥤', 'mojito': '🍹',
+  'sandwich': '🥪', 'fries': '🍟', 'pizza': '🍕', 'maggi': '🍜'
+};
+
+function getCatEmoji(catName) {
+  return EMOJI_MAP[catName.toLowerCase()] || '🍽️';
+}
+
 function renderMenu(catId) {
   const grid = document.getElementById('menu-grid');
   grid.innerHTML = '';
@@ -564,7 +596,12 @@ function renderMenu(catId) {
       const card = document.createElement('div');
       card.className = 'item-card';
       card.style.animationDelay = (i * 0.04) + 's';
+      const imgHtml = item.image_url
+        ? `<img class="item-img" src="${item.image_url}" alt="${item.name}"
+            onerror="this.parentElement.innerHTML='<span style=\"font-size:2.5rem\">${getCatEmoji(cat.name)}</span>'" />`
+        : `<span style="font-size:2.5rem">${getCatEmoji(cat.name)}</span>`;
       card.innerHTML = `
+        <div class="item-img-wrap">${imgHtml}</div>
         <div class="item-name"><span class="veg-dot"></span>${item.name}</div>
         <div class="item-desc">${item.desc}</div>
         <div class="item-footer">

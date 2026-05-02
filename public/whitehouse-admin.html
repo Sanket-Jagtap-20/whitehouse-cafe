@@ -421,6 +421,7 @@
       <button class="nav-tab active" data-tab="orders">📋 Orders</button>
       <button class="nav-tab" data-tab="take">➕ Take Order</button>
       <button class="nav-tab" data-tab="sales">📊 Sales</button>
+      <button class="nav-tab" data-tab="menu">🍽️ Menu</button>
     </div>
     <div class="nav-right">
       <div class="admin-badge" id="admin-name">Admin</div>
@@ -463,6 +464,20 @@
         <button class="btn-primary" onclick="openTakeOrder()">+ New Order</button>
       </div>
       <div id="take-order-recent"></div>
+    </div>
+
+    <!-- ── MENU TAB ── -->
+    <div class="tab-content" id="tab-menu">
+      <div class="toolbar">
+        <h2>Menu Items</h2>
+        <button class="btn-primary" onclick="openAddItem()">+ Add Item</button>
+      </div>
+      <div style="margin-bottom:.75rem">
+        <select id="menu-cat-filter" onchange="renderMenuTab()" style="font-size:.85rem;padding:.4rem .7rem">
+          <option value="all">All Categories</option>
+        </select>
+      </div>
+      <div id="menu-items-list"></div>
     </div>
 
     <!-- ── SALES TAB ── -->
@@ -534,56 +549,94 @@
   </div>
 </div>
 
+<!-- ── ADD/EDIT ITEM MODAL ── -->
+<div class="modal-overlay" id="item-modal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3 id="item-modal-title">Add Menu Item</h3>
+      <button class="modal-close" onclick="closeItemModal()">✕</button>
+    </div>
+    <div class="form-group">
+      <label>Category *</label>
+      <select id="im-cat"></select>
+    </div>
+    <div class="form-group" style="margin-top:.75rem">
+      <label>Item Name *</label>
+      <input id="im-name" type="text" placeholder="e.g. Cold Coffee" />
+    </div>
+    <div class="form-group" style="margin-top:.75rem">
+      <label>Description</label>
+      <input id="im-desc" type="text" placeholder="Short description" />
+    </div>
+    <div class="form-group" style="margin-top:.75rem">
+      <label>Price (₹) *</label>
+      <input id="im-price" type="number" placeholder="e.g. 80" min="0" />
+    </div>
+    <div class="form-group" style="margin-top:.75rem">
+      <label>Image URL</label>
+      <input id="im-img" type="url" placeholder="https://example.com/image.jpg" />
+    </div>
+    <div id="im-preview-wrap" style="margin-top:.5rem;display:none">
+      <img id="im-preview" src="" alt="Preview"
+        style="width:100%;height:140px;object-fit:cover;border-radius:8px;border:1px solid var(--border)" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeItemModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveItem()">Save Item</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ── MENU DATA ─────────────────────────────────────────────────────────────
 const MENU = [
   { id: 1, name: 'Coffee', icon: '☕', items: [
-    { id: 101, name: 'Cold Coffee', price: 80 },
-    { id: 102, name: 'Cold Coffee + Ice Cream', price: 90 },
-    { id: 103, name: 'Chocolate Cold Coffee', price: 90 },
+    { id: 101, name: 'Cold Coffee', price: 80, image_url: null },
+    { id: 102, name: 'Cold Coffee + Ice Cream', price: 90, image_url: null },
+    { id: 103, name: 'Chocolate Cold Coffee', price: 90, image_url: null },
   ]},
   { id: 2, name: 'Burger', icon: '🍔', items: [
-    { id: 201, name: 'Veg Burger', price: 40 },
-    { id: 202, name: 'Cheese Burger', price: 50 },
-    { id: 203, name: 'Paneer Burger', price: 70 },
+    { id: 201, name: 'Veg Burger', price: 40, image_url: null },
+    { id: 202, name: 'Cheese Burger', price: 50, image_url: null },
+    { id: 203, name: 'Paneer Burger', price: 70, image_url: null },
   ]},
   { id: 3, name: 'Milk Shake', icon: '🥤', items: [
-    { id: 301, name: 'Chocolate Shake', price: 70 },
-    { id: 302, name: 'Mango Shake', price: 80 },
-    { id: 303, name: 'Strawberry Shake', price: 80 },
-    { id: 304, name: 'KitKat Shake', price: 90 },
-    { id: 305, name: 'Oreo Shake', price: 90 },
+    { id: 301, name: 'Chocolate Shake', price: 70, image_url: null },
+    { id: 302, name: 'Mango Shake', price: 80, image_url: null },
+    { id: 303, name: 'Strawberry Shake', price: 80, image_url: null },
+    { id: 304, name: 'KitKat Shake', price: 90, image_url: null },
+    { id: 305, name: 'Oreo Shake', price: 90, image_url: null },
   ]},
   { id: 4, name: 'Mojito', icon: '🍹', items: [
-    { id: 401, name: 'Mint Mojito', price: 70 },
-    { id: 402, name: 'Lemon Mojito', price: 70 },
-    { id: 403, name: 'Blue Mojito', price: 80 },
-    { id: 404, name: 'Orange Mojito', price: 80 },
+    { id: 401, name: 'Mint Mojito', price: 70, image_url: null },
+    { id: 402, name: 'Lemon Mojito', price: 70, image_url: null },
+    { id: 403, name: 'Blue Mojito', price: 80, image_url: null },
+    { id: 404, name: 'Orange Mojito', price: 80, image_url: null },
   ]},
   { id: 5, name: 'Sandwich', icon: '🥪', items: [
-    { id: 501, name: 'Veg Sandwich', price: 60 },
-    { id: 502, name: 'Cheese Sandwich', price: 70 },
-    { id: 503, name: 'Chocolate Sandwich', price: 80 },
-    { id: 504, name: 'Paneer Sandwich', price: 90 },
+    { id: 501, name: 'Veg Sandwich', price: 60, image_url: null },
+    { id: 502, name: 'Cheese Sandwich', price: 70, image_url: null },
+    { id: 503, name: 'Chocolate Sandwich', price: 80, image_url: null },
+    { id: 504, name: 'Paneer Sandwich', price: 90, image_url: null },
   ]},
   { id: 6, name: 'Fries', icon: '🍟', items: [
-    { id: 601, name: 'French Fries', price: 60 },
-    { id: 602, name: 'Peri Peri Fries', price: 70 },
-    { id: 603, name: 'Masala Fries', price: 70 },
-    { id: 604, name: 'Cheese Fries', price: 80 },
+    { id: 601, name: 'French Fries', price: 60, image_url: null },
+    { id: 602, name: 'Peri Peri Fries', price: 70, image_url: null },
+    { id: 603, name: 'Masala Fries', price: 70, image_url: null },
+    { id: 604, name: 'Cheese Fries', price: 80, image_url: null },
   ]},
   { id: 7, name: 'Pizza', icon: '🍕', items: [
-    { id: 701, name: 'Margherita Pizza', price: 100 },
-    { id: 702, name: 'Veg Pizza', price: 120 },
-    { id: 703, name: 'Corn Pizza', price: 130 },
-    { id: 704, name: 'Paneer Pizza', price: 150 },
-    { id: 705, name: 'White House Special', price: 200 },
+    { id: 701, name: 'Margherita Pizza', price: 100, image_url: null },
+    { id: 702, name: 'Veg Pizza', price: 120, image_url: null },
+    { id: 703, name: 'Corn Pizza', price: 130, image_url: null },
+    { id: 704, name: 'Paneer Pizza', price: 150, image_url: null },
+    { id: 705, name: 'White House Special', price: 200, image_url: null },
   ]},
   { id: 8, name: 'Maggi', icon: '🍜', items: [
-    { id: 801, name: 'Plain Maggi', price: 50 },
-    { id: 802, name: 'Veg Maggi', price: 60 },
-    { id: 803, name: 'Cheese Maggi', price: 70 },
-    { id: 804, name: 'Paneer Maggi', price: 80 },
+    { id: 801, name: 'Plain Maggi', price: 50, image_url: null },
+    { id: 802, name: 'Veg Maggi', price: 60, image_url: null },
+    { id: 803, name: 'Cheese Maggi', price: 70, image_url: null },
+    { id: 804, name: 'Paneer Maggi', price: 80, image_url: null },
   ]},
 ];
 
@@ -626,6 +679,7 @@ function showApp() {
   document.getElementById('admin-name').textContent = '👤 Admin';
   seedOrders();
   buildCatPicker();
+  initMenuTab();
   renderOrders();
   renderSales();
   renderTakeRecent();
@@ -650,6 +704,7 @@ document.querySelectorAll('.nav-tab').forEach(btn => {
     if (btn.dataset.tab === 'orders') renderOrders();
     if (btn.dataset.tab === 'sales')  renderSales();
     if (btn.dataset.tab === 'take')   renderTakeRecent();
+    if (btn.dataset.tab === 'menu')   renderMenuTab();
   });
 });
 
@@ -875,6 +930,163 @@ function renderSales() {
         <tbody>${rows.map(([d, v]) => `<tr><td>${d}</td><td>${v.orders}</td><td>₹${v.revenue.toFixed(0)}</td></tr>`).join('')}</tbody>
       </table>`
     : '<div class="empty-state">No data for this period</div>';
+}
+
+// ── MENU TAB ─────────────────────────────────────────────────────────────
+let editingItemId = null;
+
+function initMenuTab() {
+  const sel = document.getElementById('menu-cat-filter');
+  sel.innerHTML = '<option value="all">All Categories</option>';
+  MENU.forEach(cat => {
+    const opt = document.createElement('option');
+    opt.value = cat.id;
+    opt.textContent = cat.icon + ' ' + cat.name;
+    sel.appendChild(opt);
+  });
+  renderMenuTab();
+}
+
+function renderMenuTab() {
+  const catId = document.getElementById('menu-cat-filter').value;
+  const cats = catId === 'all' ? MENU : MENU.filter(c => c.id == catId);
+  const container = document.getElementById('menu-items-list');
+  container.innerHTML = '';
+
+  cats.forEach(cat => {
+    const section = document.createElement('div');
+    section.style.cssText = 'background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:1rem;overflow:hidden';
+    section.innerHTML = `<div style="padding:.75rem 1rem;background:rgba(200,129,58,.1);font-weight:700;font-size:.9rem;border-bottom:1px solid var(--border)">${cat.icon} ${cat.name}</div>`;
+
+    cat.items.forEach(item => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;gap:.75rem;padding:.65rem 1rem;border-bottom:1px solid var(--border)';
+      row.innerHTML = `
+        <img src="${item.image_url || ''}" alt="${item.name}"
+          style="width:48px;height:48px;object-fit:cover;border-radius:8px;background:#2a2010;flex-shrink:0"
+          onerror="this.style.display='none'"
+          ${!item.image_url ? 'style="display:none"' : ''}
+        />
+        ${!item.image_url ? `<div style="width:48px;height:48px;border-radius:8px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0">${cat.icon}</div>` : ''}
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;font-size:.88rem">${item.name}</div>
+          <div style="font-size:.75rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.desc || '—'}</div>
+          ${item.image_url ? `<div style="font-size:.7rem;color:var(--amber);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px">${item.image_url}</div>` : '<div style="font-size:.7rem;color:var(--muted)">No image set</div>'}
+        </div>
+        <div style="font-weight:700;color:var(--gold);white-space:nowrap">₹${item.price}</div>
+        <button class="btn-primary" style="font-size:.75rem;padding:.3rem .65rem;white-space:nowrap" onclick="openEditItem(${cat.id}, ${item.id})">✏️ Edit</button>`;
+      section.appendChild(row);
+    });
+
+    container.appendChild(section);
+  });
+}
+
+function openAddItem() {
+  editingItemId = null;
+  document.getElementById('item-modal-title').textContent = 'Add Menu Item';
+  document.getElementById('im-name').value = '';
+  document.getElementById('im-desc').value = '';
+  document.getElementById('im-price').value = '';
+  document.getElementById('im-img').value = '';
+  document.getElementById('im-preview-wrap').style.display = 'none';
+
+  // Populate category select
+  const sel = document.getElementById('im-cat');
+  sel.innerHTML = '';
+  MENU.forEach(cat => {
+    const opt = document.createElement('option');
+    opt.value = cat.id;
+    opt.textContent = cat.icon + ' ' + cat.name;
+    sel.appendChild(opt);
+  });
+
+  document.getElementById('item-modal').classList.add('show');
+}
+
+function openEditItem(catId, itemId) {
+  editingItemId = { catId, itemId };
+  const cat = MENU.find(c => c.id === catId);
+  const item = cat?.items.find(i => i.id === itemId);
+  if (!item) return;
+
+  document.getElementById('item-modal-title').textContent = 'Edit Item';
+  document.getElementById('im-name').value = item.name;
+  document.getElementById('im-desc').value = item.desc || '';
+  document.getElementById('im-price').value = item.price;
+  document.getElementById('im-img').value = item.image_url || '';
+
+  const sel = document.getElementById('im-cat');
+  sel.innerHTML = '';
+  MENU.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = c.icon + ' ' + c.name;
+    if (c.id === catId) opt.selected = true;
+    sel.appendChild(opt);
+  });
+
+  if (item.image_url) {
+    document.getElementById('im-preview').src = item.image_url;
+    document.getElementById('im-preview-wrap').style.display = 'block';
+  } else {
+    document.getElementById('im-preview-wrap').style.display = 'none';
+  }
+
+  document.getElementById('item-modal').classList.add('show');
+}
+
+function closeItemModal() {
+  document.getElementById('item-modal').classList.remove('show');
+  editingItemId = null;
+}
+
+// Preview image as user types URL
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('im-img')?.addEventListener('input', function() {
+    const wrap = document.getElementById('im-preview-wrap');
+    const img = document.getElementById('im-preview');
+    if (this.value) {
+      img.src = this.value;
+      wrap.style.display = 'block';
+      img.onerror = () => { wrap.style.display = 'none'; };
+    } else {
+      wrap.style.display = 'none';
+    }
+  });
+});
+
+function saveItem() {
+  const name  = document.getElementById('im-name').value.trim();
+  const desc  = document.getElementById('im-desc').value.trim();
+  const price = parseFloat(document.getElementById('im-price').value);
+  const img   = document.getElementById('im-img').value.trim();
+  const catId = parseInt(document.getElementById('im-cat').value);
+
+  if (!name || !price) { alert('Name and price are required'); return; }
+
+  const cat = MENU.find(c => c.id === catId);
+  if (!cat) return;
+
+  if (editingItemId) {
+    // Edit existing
+    const item = cat.items.find(i => i.id === editingItemId.itemId);
+    if (item) {
+      item.name = name;
+      item.desc = desc;
+      item.price = price;
+      item.image_url = img || null;
+    }
+  } else {
+    // Add new
+    const newId = Date.now();
+    cat.items.push({ id: newId, name, desc, price, image_url: img || null });
+  }
+
+  closeItemModal();
+  renderMenuTab();
+  renderPicker(); // refresh take-order picker too
+  alert('✅ Item saved!');
 }
 
 // ── HELPERS ───────────────────────────────────────────────────────────────
