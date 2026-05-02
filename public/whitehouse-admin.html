@@ -98,22 +98,13 @@
       margin-right: .5rem;
     }
     .nav-brand small { color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: .72rem; font-weight: 400; display: block; margin-top: -3px; }
-    .nav-tabs {
-      display: flex;
-      gap: .2rem;
-      flex: 1;
-      min-width: 0;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: thin;
-    }
+    .nav-tabs { display: flex; gap: .2rem; flex: 1; }
     .nav-tab {
       background: none; border: none;
       color: var(--muted); font-family: 'DM Sans', sans-serif;
       font-size: .83rem; font-weight: 500;
       padding: .45rem .8rem; border-radius: var(--radius-sm);
       cursor: pointer; transition: all .15s; white-space: nowrap;
-      flex: 0 0 auto;
     }
     .nav-tab.active, .nav-tab:hover { background: var(--surface2); color: var(--amber); }
     .nav-tab.active { color: var(--amber-light); font-weight: 600; }
@@ -944,7 +935,32 @@ function renderSales() {
 // ── MENU TAB ─────────────────────────────────────────────────────────────
 let editingItemId = null;
 
-function initMenuTab() {
+async function initMenuTab() {
+  // Load live menu from API so image_url changes are reflected immediately
+  try {
+    const res = await fetch('/.netlify/functions/menu');
+    if (res.ok) {
+      const apiMenu = await res.json();
+      if (Array.isArray(apiMenu) && apiMenu.length) {
+        MENU.length = 0;
+        apiMenu.forEach(cat => {
+          MENU.push({
+            id: cat.id,
+            name: cat.name,
+            icon: cat.icon || '🍽️',
+            items: (cat.items || []).map(i => ({
+              id: i.id,
+              name: i.name,
+              desc: i.description || '',
+              price: parseFloat(i.price),
+              image_url: i.image_url || null,
+            }))
+          });
+        });
+      }
+    }
+  } catch (e) { /* use hardcoded MENU */ }
+
   const sel = document.getElementById('menu-cat-filter');
   sel.innerHTML = '<option value="all">All Categories</option>';
   MENU.forEach(cat => {
@@ -1065,7 +1081,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-function saveItem() {
+async function saveItem() {
   const name  = document.getElementById('im-name').value.trim();
   const desc  = document.getElementById('im-desc').value.trim();
   const price = parseFloat(document.getElementById('im-price').value);
@@ -1077,8 +1093,31 @@ function saveItem() {
   const cat = MENU.find(c => c.id === catId);
   if (!cat) return;
 
+  const payload = {
+    id: editingItemId ? editingItemId.itemId : undefined,
+    category_id: catId,
+    name,
+    description: desc,
+    price,
+    image_url: img || null,
+    is_available: 1,
+    is_veg: 1,
+  };
+
+  // Persist to DB via API so customer page always sees latest image
+  try {
+    const res = await fetch('/.netlify/functions/menu/items', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error('API error');
+  } catch (e) {
+    // API unavailable — local update only
+  }
+
+  // Always update local MENU so the admin UI reflects the change immediately
   if (editingItemId) {
-    // Edit existing
     const item = cat.items.find(i => i.id === editingItemId.itemId);
     if (item) {
       item.name = name;
@@ -1087,14 +1126,13 @@ function saveItem() {
       item.image_url = img || null;
     }
   } else {
-    // Add new
     const newId = Date.now();
     cat.items.push({ id: newId, name, desc, price, image_url: img || null });
   }
 
   closeItemModal();
   renderMenuTab();
-  renderPicker(); // refresh take-order picker too
+  renderPicker();
   alert('✅ Item saved!');
 }
 
