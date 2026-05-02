@@ -1,0 +1,16 @@
+{
+  "name": "whitehouse-cafe-netlify",
+  "version": "1.0.0",
+  "description": "White House Cafe - Netlify Deployment",
+  "scripts": {
+    "dev": "netlify dev"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "mysql2": "^3.10.0",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  }
+}

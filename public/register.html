@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register Admin – White House Cafe</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body class="auth-page">
+  <div class="auth-card">
+    <div class="auth-logo">🏠</div>
+    <h1>White House Cafe</h1>
+    <h2>Register New Admin</h2>
+    <div id="msg" class="alert hidden"></div>
+    <div class="form-row">
+      <label>Full Name</label>
+      <input id="name" type="text" placeholder="Your full name" />
+    </div>
+    <div class="form-row">
+      <label>Email</label>
+      <input id="email" type="email" placeholder="admin@example.com" />
+    </div>
+    <div class="form-row">
+      <label>Password</label>
+      <input id="password" type="password" placeholder="Min 6 characters" />
+    </div>
+    <div class="form-row">
+      <label>Confirm Password</label>
+      <input id="confirm" type="password" placeholder="Repeat password" />
+    </div>
+    <button id="register-btn" class="btn-primary full-width">Register</button>
+    <p class="auth-hint" style="margin-top:1rem">
+      Already have an account? <a href="/login.html" style="color:var(--primary)">Login here</a>
+    </p>
+  </div>
+
+  <script>
+    document.getElementById('register-btn').addEventListener('click', async () => {
+      const name     = document.getElementById('name').value.trim();
+      const email    = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const confirm  = document.getElementById('confirm').value;
+      const msgEl    = document.getElementById('msg');
+
+      msgEl.classList.add('hidden');
+
+      if (!name || !email || !password || !confirm) {
+        msgEl.textContent = 'Please fill in all fields.';
+        msgEl.className = 'alert alert-error';
+        return;
+      }
+      if (password.length < 6) {
+        msgEl.textContent = 'Password must be at least 6 characters.';
+        msgEl.className = 'alert alert-error';
+        return;
+      }
+      if (password !== confirm) {
+        msgEl.textContent = 'Passwords do not match.';
+        msgEl.className = 'alert alert-error';
+        return;
+      }
+
+      const btn = document.getElementById('register-btn');
+      btn.disabled = true;
+      btn.textContent = 'Registering…';
+
+      try {
+        const res = await fetch('/api/admin/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          msgEl.textContent = '✅ Registered successfully! Redirecting to login…';
+          msgEl.className = 'alert alert-success';
+          setTimeout(() => window.location.href = '/login.html', 2000);
+        } else {
+          msgEl.textContent = data.error || 'Registration failed.';
+          msgEl.className = 'alert alert-error';
+          btn.disabled = false;
+          btn.textContent = 'Register';
+        }
+      } catch {
+        msgEl.textContent = 'Server error. Please try again.';
+        msgEl.className = 'alert alert-error';
+        btn.disabled = false;
+        btn.textContent = 'Register';
+      }
+    });
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') document.getElementById('register-btn').click();
+    });
+  </script>
+</body>
+</html>
