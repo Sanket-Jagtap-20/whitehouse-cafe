@@ -175,10 +175,11 @@
       display: flex;
       flex-direction: column;
       gap: 0;
-      transition: box-shadow .2s, transform .15s;
+      transition: box-shadow .25s, transform .25s cubic-bezier(.22,1,.36,1), border-color .2s;
       overflow: hidden;
+      position: relative;
     }
-    .item-card:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
+    .item-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-4px); border-color: var(--amber); }
     .item-img-wrap {
       width: 100%;
       height: 130px;
@@ -190,15 +191,13 @@
       align-items: center;
       justify-content: center;
       font-size: 2.5rem;
-      position: relative;
     }
     .item-img {
-      position: absolute;
-      top: 0; left: 0;
       width: 100%;
-      height: 100%;
+      height: 130px;
       object-fit: cover;
       display: block;
+      transition: opacity .3s;
     }
     .item-img.loading { opacity: 0; }
     .item-img.loaded { opacity: 1; }
@@ -396,15 +395,137 @@
     /* ── EMPTY ── */
     .empty { text-align: center; color: #b0927a; padding: 1.5rem; font-size: .88rem; }
 
-    /* ANIMATIONS */
-    .item-card { animation: fadeUp .3s ease both; }
+    /* ── ANIMATIONS & MICRO-INTERACTIONS ── */
     @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(10px); }
+      from { opacity: 0; transform: translateY(16px); }
       to   { opacity: 1; transform: translateY(0); }
     }
+    @keyframes slideInRight {
+      from { opacity: 0; transform: translateX(20px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    @keyframes ripple {
+      0% { transform: scale(0); opacity: 1; }
+      100% { transform: scale(3); opacity: 0; }
+    }
+    @keyframes bounce-in {
+      0% { transform: scale(0.7); opacity: 0; }
+      60% { transform: scale(1.1); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-6px); }
+    }
+    @keyframes glow-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(200,129,58,.4); }
+      50% { box-shadow: 0 0 0 8px rgba(200,129,58,0); }
+    }
+
+    /* Staggered card animations */
+    .item-card {
+      animation: fadeUp .4s cubic-bezier(.22,1,.36,1) both;
+    }
+    .item-card:nth-child(1) { animation-delay: .02s; }
+    .item-card:nth-child(2) { animation-delay: .05s; }
+    .item-card:nth-child(3) { animation-delay: .08s; }
+    .item-card:nth-child(4) { animation-delay: .11s; }
+    .item-card:nth-child(5) { animation-delay: .14s; }
+    .item-card:nth-child(6) { animation-delay: .17s; }
+    .item-card:nth-child(n+7) { animation-delay: .20s; }
+
+    /* Card press effect */
+    .item-card:active { transform: scale(.97) translateY(0) !important; transition: transform .1s !important; }
+
+    /* Add button ripple */
+    .add-btn { position: relative; overflow: hidden; }
+    .add-btn::after {
+      content: '';
+      position: absolute; inset: 0; border-radius: inherit;
+      background: rgba(255,255,255,.3);
+      transform: scale(0); opacity: 0;
+    }
+    .add-btn:active::after { animation: ripple .35s ease; }
+
+    /* Qty button bounce */
+    .qty-btn:active { transform: scale(.88); }
+
+    /* Cart FAB pulse when new item added */
+    .cart-fab.pulse { animation: glow-pulse .5s ease; }
+
+    /* Hero floating emoji */
+    .hero-emoji { display: inline-block; animation: float 3s ease-in-out infinite; }
+
+    /* Category tabs slide-in */
+    .cat-tab { transition: all .22s cubic-bezier(.22,1,.36,1); }
+    .cat-tab.active { transform: scale(1.04); }
+
+    /* Form focus glow */
+    .form-row input:focus,
+    .form-row textarea:focus {
+      border-color: var(--amber);
+      box-shadow: 0 0 0 3px rgba(200,129,58,.15);
+    }
+
+    /* Scroll progress indicator */
+    .scroll-progress {
+      position: fixed; top: 0; left: 0;
+      height: 3px; background: linear-gradient(90deg, var(--amber), var(--gold));
+      z-index: 999; width: 0%; transition: width .1s;
+    }
+
+    /* Section headers with decorative line */
+    .card h2 { position: relative; padding-bottom: .6rem; }
+    .card h2::after {
+      content: '';
+      position: absolute; bottom: 0; left: 0;
+      width: 36px; height: 3px;
+      background: linear-gradient(90deg, var(--amber), var(--gold));
+      border-radius: 3px;
+    }
+
+    /* Hero background animated gradient */
+    .hero {
+      background: linear-gradient(135deg, var(--brown) 0%, #5c3520 50%, #3d2010 100%);
+      background-size: 200% 200%;
+      animation: heroGradient 8s ease infinite;
+    }
+    @keyframes heroGradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* Item image zoom on hover */
+    .item-img { transition: transform .4s cubic-bezier(.22,1,.36,1), opacity .3s; }
+    .item-card:hover .item-img { transform: scale(1.06); }
+
+    /* Cart panel items animation */
+    .cart-item-row { animation: slideInRight .25s ease both; }
+
+    /* Success modal enhanced */
+    .modal-box { animation: bounce-in .45s cubic-bezier(.34,1.56,.64,1); }
+    .success-icon { animation: float 2s ease-in-out infinite; display: block; }
+
+    /* Skeleton loading shimmer */
+    .skeleton {
+      background: linear-gradient(90deg, #f0e8df 25%, #faf0e6 50%, #f0e8df 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 8px;
+    }
+
+    /* Smooth page load */
+    body { animation: fadeUp .5s ease both; }
   </style>
 </head>
 <body>
+
+  <div class="scroll-progress" id="scroll-progress"></div>
 
   <header>
     <div class="logo">🏠 White <span>House</span> Cafe</div>
@@ -412,7 +533,7 @@
   </header>
 
   <div class="hero">
-    <h1>Fresh Food,<br/><em>Delivered Fast</em></h1>
+    <h1>Fresh Food,<br/><em>Delivered <span class="hero-emoji">✨</span> Fast</em></h1>
     <p>Order from our menu and we'll bring it right to your table</p>
   </div>
 
@@ -533,18 +654,12 @@ const MENU = [
   ]},
 ];
 
-// ── EMOJI MAP ─────────────────────────────────────────────────────────────
-const EMOJI_MAP = {
-  'coffee': '☕', 'burger': '🍔', 'milk shake': '🥤', 'mojito': '🍹',
-  'sandwich': '🥪', 'fries': '🍟', 'pizza': '🍕', 'maggi': '🍜'
-};
-
 // ── STATE ─────────────────────────────────────────────────────────────────
 const cart = {};
 let activeCat = 'all';
 
 // ── INIT ──────────────────────────────────────────────────────────────────
-(async function init() {
+(function init() {
   const params = new URLSearchParams(location.search);
   const table = params.get('table');
   if (table) {
@@ -552,38 +667,19 @@ let activeCat = 'all';
     badge.textContent = '🪑 ' + table;
     badge.classList.add('show');
   }
-
-  // Try to load live menu from API (includes image_url from admin); fall back to hardcoded
-  try {
-    const res = await fetch('/.netlify/functions/menu');
-    if (res.ok) {
-      const apiMenu = await res.json();
-      if (Array.isArray(apiMenu) && apiMenu.length) {
-        MENU.length = 0;
-        apiMenu.forEach(cat => {
-          MENU.push({
-            id: cat.id,
-            name: cat.name,
-            icon: cat.icon || '🍽️',
-            items: (cat.items || []).map(i => ({
-              id: i.id,
-              name: i.name,
-              desc: i.description || '',
-              price: parseFloat(i.price),
-              image_url: i.image_url || null,
-            }))
-          });
-        });
-      }
-    }
-  } catch (e) { /* silently use hardcoded MENU */ }
-
   buildCatTabs();
   renderMenu('all');
   document.getElementById('cart-fab').addEventListener('click', openCart);
   document.getElementById('cart-overlay').addEventListener('click', closeCart);
   document.getElementById('clear-cart').addEventListener('click', clearCart);
   document.getElementById('place-order-btn').addEventListener('click', placeOrder);
+
+  // Scroll progress
+  window.addEventListener('scroll', () => {
+    const doc = document.documentElement;
+    const scrolled = doc.scrollTop / (doc.scrollHeight - doc.clientHeight) * 100;
+    document.getElementById('scroll-progress').style.width = scrolled + '%';
+  }, { passive: true });
 })();
 
 // ── TABS ─────────────────────────────────────────────────────────────────
@@ -611,6 +707,12 @@ function tabBtn(label, val, active = false) {
 }
 
 // ── MENU RENDER ──────────────────────────────────────────────────────────
+// Emoji fallback per category
+const EMOJI_MAP = {
+  'coffee': '☕', 'burger': '🍔', 'milk shake': '🥤', 'mojito': '🍹',
+  'sandwich': '🥪', 'fries': '🍟', 'pizza': '🍕', 'maggi': '🍜'
+};
+
 function getCatEmoji(catName) {
   return EMOJI_MAP[catName.toLowerCase()] || '🍽️';
 }
@@ -624,13 +726,10 @@ function renderMenu(catId) {
       const card = document.createElement('div');
       card.className = 'item-card';
       card.style.animationDelay = (i * 0.04) + 's';
-      const emoji = getCatEmoji(cat.name);
       const imgHtml = item.image_url
-        ? `<span style="font-size:2.5rem" class="img-fallback">${emoji}</span>` +
-          `<img class="item-img" src="${item.image_url}" alt="${item.name}"` +
-          ` onload="this.previousElementSibling.style.display='none'"` +
-          ` onerror="this.style.display='none'" />`
-        : `<span style="font-size:2.5rem">${emoji}</span>`;
+        ? `<img class="item-img" src="${item.image_url}" alt="${item.name}"
+            onerror="this.parentElement.innerHTML='<span style=\"font-size:2.5rem\">${getCatEmoji(cat.name)}</span>'" />`
+        : `<span style="font-size:2.5rem">${getCatEmoji(cat.name)}</span>`;
       card.innerHTML = `
         <div class="item-img-wrap">${imgHtml}</div>
         <div class="item-name"><span class="veg-dot"></span>${item.name}</div>
@@ -680,6 +779,11 @@ function updateFab() {
   fab.classList.add('show');
   document.getElementById('fab-count').textContent = count;
   document.getElementById('fab-total').textContent = `₹${cartTotal()}`;
+  // Pulse animation
+  fab.classList.remove('pulse');
+  void fab.offsetWidth; // reflow
+  fab.classList.add('pulse');
+  setTimeout(() => fab.classList.remove('pulse'), 600);
 }
 
 function openCart() {
